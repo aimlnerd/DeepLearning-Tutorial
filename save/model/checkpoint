@@ -1,0 +1,2 @@
+model_checkpoint_path: "trained_model_weight"
+all_model_checkpoint_paths: "trained_model_weight"

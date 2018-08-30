@@ -1,5 +1,5 @@
 import tensorflow as tf
-tf.set_random_seed(9999)
+tf.set_random_seed(77999)
 from sklearn.base import BaseEstimator
 
 
@@ -32,16 +32,16 @@ class DLRegression(BaseEstimator):
         self.print_epoch = print_epoch
         self.activation = activation
 
-        tf.set_random_seed(9999)
+        tf.set_random_seed(77999)
         tf.reset_default_graph()
-        super.__init__()
+        super().__init__()
 
-    def _set_input_placeholders(self):
+    def _set_placeholders(self):
         """
         Placeholders for input features and output
         """
-        self.X = tf.placeholder(tf.float32, shape=[None, self.num_feat])
-        self.y_true = tf.placeholder(tf.float32, shape=[None, self.num_feat])
+        self.X = tf.placeholder(tf.float32, shape=[None, self.x_shape])
+        self.y_true = tf.placeholder(tf.float32, shape=[None, self.y_shape])
 
     def _hidden_layers(self):
         """
@@ -49,31 +49,32 @@ class DLRegression(BaseEstimator):
         """
         hidden_lst = [self.X]
         for i, layer in enumerate(self.hidden_layers):
-            hidden_layer_i = tf.layers.dense(inputs=hidden_layer_i[i],
-                                             kernel_regularizer=tf.contrib.l2_regularizer(scale=self.l2_regularizer),
+            hidden_layer_i = tf.layers.dense(inputs=hidden_lst[i],
+                                             kernel_regularizer=tf.contrib.layers.l2_regularizer
+                                                                                 (scale=self.l2_regularizer),
                                              units=layer,
                                              activation=self.activation,
                                              kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=True,
-                                                                                                     seed=9999))
-            hidden_layer_i = tf.layers.dropout(inputs=hidden_layer_i, rate=self.dropout, seed=9999)
+                                                                                                     seed=77999))
+            hidden_layer_i = tf.layers.dropout(inputs=hidden_layer_i, rate=self.dropout, seed=77999)
             hidden_lst.append(hidden_layer_i)
 
         self.hidden_output = hidden_lst[-1]
+        print(f'\nHidden layers: {hidden_lst}\n')
 
     def _output_layer(self):
         """
         Create Output layer
         """
-        self._output_layer = tf.layers.dense(input=self.hidden_output, units=self.num_feat, activation=None)
+        self.output_layer = tf.layers.dense(inputs=self.hidden_output, units=self.y_shape, activation=None)
+        print(f'Output layer: {self.output_layer}\n')
 
     def _loss(self):
-        self.loss_train = tf.losses.mean_squared_error(self.output_layer, self.y_true) \
-                          + tf.losses.get_regularization_loss()
-        self.loss_val = tf.losses.mean_squared_error(self.output_layer, self.y_true) \
-                          + tf.losses.get_regularization_loss()
+        self.loss_train = tf.losses.mean_squared_error(self.output_layer, self.y_true) + tf.losses.get_regularization_loss()
+        self.loss_val = tf.losses.mean_squared_error(self.output_layer, self.y_true) + tf.losses.get_regularization_loss()
 
     def _optimizer(self):
-        optimizer = tf.train.AdadeltaOptimizer(learning_rate=self.learning_rate,
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate,
                                                beta1=self.beta1,
                                                beta2=self.beta2,
                                                epsilon=self.epsilon)
@@ -88,9 +89,10 @@ class DLRegression(BaseEstimator):
         :param fit_params:
         :return: None
         """
-        tf.set_random_seed(9999)
-        self.num_feat = X.shape[1]
-        self._set_input_placeholders()
+        tf.set_random_seed(77999)
+        self.x_shape = X.shape[1]
+        self.y_shape = y.shape[1]
+        self._set_placeholders()
         self._hidden_layers()
         self._output_layer()
         self._loss()
@@ -100,11 +102,11 @@ class DLRegression(BaseEstimator):
         saver = tf.train.Saver()
 
         with tf.Session() as sess:
-            tf.set_random_seed(9999)
+            tf.set_random_seed(77999)
             sess.run(init)
 
             for i in range(self.epochs):
-                _, loss_training = sess.run([self.train, self.loss_train], feed_dict={self.X: X, self.y_true: X})
+                _, loss_training = sess.run([self.train, self.loss_train], feed_dict={self.X: X, self.y_true: y})
                 if len(valid_data) == 2:
                     loss_valid = sess.run(sess.loss_val, feed_dict={self.X: valid_data[0], self.y_true: valid_data[1]})
                     if self.print_epoch:
@@ -124,9 +126,10 @@ class DLRegression(BaseEstimator):
         :param fit_params:
         :return: predicted output (numpy array)
         """
-        tf.reset_default_graph()
-        self.num_feat = X.shape[1]
-        self._set_input_placeholders()
+
+        tf.reset_default_graph()  # reset graph to avoid using currently loaded weights.
+        self.x_shape = X.shape[1]
+        self._set_placeholders()
         self._hidden_layers()
         self._output_layer()
         self._loss()
@@ -137,7 +140,7 @@ class DLRegression(BaseEstimator):
 
         with tf.Session() as sess:
             saver.restore(sess, self.save_path + '/trained_model_weight')
-            y_test_pred = self._output_layer.eval(feed_dict={self.X: X})
+            y_test_pred = self.output_layer.eval(feed_dict={self.X: X})
             sess.close()
 
         return y_test_pred
