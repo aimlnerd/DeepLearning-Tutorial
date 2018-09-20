@@ -71,6 +71,8 @@ class DLRegression(BaseEstimator):
 
     def _loss(self):
         self.loss_train = tf.losses.mean_squared_error(self.output_layer, self.y_true) + tf.losses.get_regularization_loss()
+
+        # For calculating validation loss separately
         self.loss_val = tf.losses.mean_squared_error(self.output_layer, self.y_true) + tf.losses.get_regularization_loss()
 
     def _optimizer(self):
@@ -108,9 +110,9 @@ class DLRegression(BaseEstimator):
             for i in range(self.epochs):
                 _, loss_training = sess.run([self.train, self.loss_train], feed_dict={self.X: X, self.y_true: y})
                 if len(valid_data) == 2:
-                    loss_valid = sess.run(sess.loss_val, feed_dict={self.X: valid_data[0], self.y_true: valid_data[1]})
+                    loss_valid = sess.run(self.loss_val, feed_dict={self.X: valid_data[0], self.y_true: valid_data[1]})
                     if self.print_epoch:
-                        print(f'Epoch {i}: Train loss = {loss_training:.4f}, Valid loss = {loss_valid:,4f}')
+                        print(f'Epoch {i}: Train loss = {loss_training:.4f}, Valid loss = {loss_valid:.4f}')
                 else:
                     if self.print_epoch:
                         print(f'Epoch {i}: Train loss = {loss_training:.4f}')

@@ -7,3 +7,5 @@
 - https://stackoverflow.com/questions/33759623/tensorflow-how-to-save-restore-a-model
 - https://medium.com/@jsflo.dev/saving-and-loading-a-tensorflow-model-using-the-savedmodel-api-17645576527
 - https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examples/3_NeuralNetworks/autoencoder.py
+- http://ronny.rest/tutorials/module/tf_01
+- https://www.tensorflow.org/performance/performance_guide#input_pipeline_optimization

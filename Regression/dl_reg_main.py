@@ -8,23 +8,23 @@ type(boston)
 features = boston['data']
 feature_names = boston['feature_names']
 target = boston['target']
-target = target.reshape(target.shape[0],1)
+target = target.reshape(target.shape[0], 1)
 
 # Train test split
-X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=4585)
+X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=77999)
 
 dlreg = DLRegression(hidden_layers=[4,2],
                      batch_size=None,
                      dropout=0.1,
                      l2_regularizer=1e-05,
-                     learning_rate=0.01,
+                     learning_rate=0.001,
                      beta1=0.9,
-                     beta2=0.99,
+                     beta2=0.999,
                      epsilon=1e-08,
-                     epochs=100,
+                     epochs=5000,
                      save_path='./save/model',
                      logs_path='./log',
                      print_epoch=True)
 
-dlreg.fit(X=X_train, y=y_train)
+dlreg.fit(X=X_train, y=y_train, valid_data=(X_test, y_test))
 y_test_pred = dlreg.predict(X=X_test)
